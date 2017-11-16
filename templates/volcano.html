@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+{% block latest_images %}
+
+	<!-- loop through S1 image list, grouped by acquisition time -->
+	{% for group in imgS1|groupby('acqstarttime')|reverse %}
+		<div class="row">
+
+			<!-- loop through S1 images in a group -->
+			{% for imgS1 in group.list %}
+
+				<!-- define cell (width=3col) -->
+				<div class="col-md-3 seb_nopadding">
+
+					<!-- add acquisition time if first iteration -->
+					{% if loop.first %}
+						<p style="margin-top:0; margin-bottom:0"> {{ group.grouper.strftime('%Y-%m-%d %H:%M') }} </p>
+					{% else %}
+						<br>
+					{% endif %}
+
+					<!-- add image -->
+					<img src="{{url_for('static', filename=imgS1.abspath)}}" width="100%">
+
+				</div>
+			{% endfor %}
+
+
+			<!-- loop through S2 images -->
+			{% for nir in imgS2 %}
+
+				<!-- add S2 image if acq time < 10 days from S1 acq time -->
+				{% if (nir.acqstarttime - group.grouper)|abs < 10|int2td('days') %}
+					<div class="col-md-3 seb_nopadding">
+						<p style="margin-top:0; margin-bottom:0"> {{ nir.acqstarttime.strftime('%Y-%m-%d %H:%M') }} ({{ (nir.acqstarttime - group.grouper)|td2int('days')|round(1) }} days) </p>
+						<img src="{{url_for('static', filename=nir.abspath)}}" width="100%">
+					</div>
+				{% endif %}
+			{% endfor %}
+
+		</div>
+	{% endfor %}
+
+
+
+
+{% endblock %}

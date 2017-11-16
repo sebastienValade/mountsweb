@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block page_content %}
+
+	{% for res in results %}
+  		
+  		<i> {{res.title}} </i>
+    	<br>
+    	<!-- <i> "{{url_for('static', filename=res.abspath[17:])}}" </i> -->
+		<img src="{{url_for('static', filename=res.abspath[17:])}}" style="width:30%" align="middle">
+		<br>
+		
+  	{% endfor %}
+
+
+{% endblock %}

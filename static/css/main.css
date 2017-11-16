@@ -1,0 +1,30 @@
+#mounts-logo {
+    padding-left: 64px;
+    background: url('../images/mounts_h32.png') no-repeat;
+    background-position: left;
+    color: orange;
+    vertical-align: middle;
+}
+
+
+#vNav {
+
+    width: 25%;
+}
+
+.grigioTd {
+    background-color: #d8d5d0;
+    border: 2px solid #fff;
+}
+
+.seb_nopadding {
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    padding-right: 0;    
+}
+
+/* NB: padding necessary when using bottstrap navbar-fixed-top */
+body {
+    padding-top: 60px;
+}

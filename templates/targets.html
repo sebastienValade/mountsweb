@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block page_content %}
+
+	<b><i>Targets</i></b>
+	<br>
+    <br>
+    {% for target in targets %}
+    	
+    	<!-- create links with dynamic parameter: http://localhost:5000/?id=221080 -->
+  		<!-- <a href="{{ url_for('index', id=target.id) }}"> {{target.fullname}} </a> -->
+
+  		<!-- create links with dynamic route: http://localhost:5000/volcano/221080 -->
+  		<a href="{{ url_for('volcano', id=target.id, _external=True) }}"> {{target.fullname}} </a>
+    	<br>
+
+    {% else %}
+        <em>No targets found...</em>
+  	{% endfor %}
+
+{% endblock %}

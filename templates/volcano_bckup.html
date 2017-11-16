@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+
+{% block latest_images %}
+
+	<!-- loop through list of dictionaries, storing images with common master -->
+	{% for val in results.itervalues() %}
+
+		<div class="row">
+			<div class="col-md-12">
+				<i> {{val[0]['title'][0:15]}} - {{val[0]['title'][16:30]}} </i>
+				<br>
+
+				<!-- loop through images in dictionary -->
+				{% for i in val %}
+					
+					<img src="{{url_for('static', filename=i.abspath)}}" style="width:30%" align="middle">
+
+				{% endfor %}  
+				<br>
+				<br>
+			</div>
+		</div>
+	{% endfor %}  
+
+
+{% endblock %}
+
+
+
+
+
+
+
+	
+	<!-- loop through dictionary, where each key is an acquisition time, each value a list of images -->
+	{% for val in results|dictsort(true) %}
+			<i> {{val}} </i>
+			<br>
+
+			{% for i in val %}
+				<b> {{i[0].title}} </b>
+				<br>
+			{% endfor %}
+
+			<br>
+			<br>
+
+	{% endfor %}  
+
+
+	<ul>
+	{% for group in results|groupby('acqstarttime')|reverse %}
+	    <li>{{ group.grouper }}<ul>
+	    {% for results in group.list %}
+	        <li>{{ results.title }}</li>
+	    {% endfor %}</ul></li>
+	{% endfor %}
+	</ul>
