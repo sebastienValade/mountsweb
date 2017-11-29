@@ -2,57 +2,61 @@
 
 {% block latest_images %}
 
-	<!-- loop through list of dictionaries, storing images with common master -->
-	{% for val in results.itervalues() %}
-
+	<!-- loop through S1 image list, grouped by acquisition time -->
+	{% for group in imgS1|groupby('acqstarttime')|reverse %}
 		<div class="row">
-			<div class="col-md-12">
-				<i> {{val[0]['title'][0:15]}} - {{val[0]['title'][16:30]}} </i>
-				<br>
 
-				<!-- loop through images in dictionary -->
-				{% for i in val %}
-					
-					<img src="{{url_for('static', filename=i.abspath)}}" style="width:30%" align="middle">
+			<!-- loop through S1 images in a group -->
+			{% for imgS1 in group.list %}
 
-				{% endfor %}  
-				<br>
-				<br>
-			</div>
+				<!-- define cell (width=3col) -->
+				<div class="col-md-3 seb_nopadding">
+
+					<!-- add acquisition time if first iteration -->
+					{% if loop.first %}
+						<p style="margin-top:0; margin-bottom:0"> {{ group.grouper.strftime('%Y-%m-%d %H:%M') }} </p>
+					{% else %}
+						<br>
+					{% endif %}
+
+					<!-- display full resolution image -->
+					<!-- <img src="{{url_for('static', filename=imgS1.abspath)}}" width="100%"> -->
+
+					<!-- display thumbnail image with link to full resolution image -->
+					<a href="{{url_for('static', filename=imgS1.abspath, _external=True)}}" target="_blank"> 
+						<img src="{{url_for('static', filename=imgS1.abspath|replace('.png','_thumb.png'))}}" width="100%">
+					</a>
+
+				</div>
+			{% endfor %}
+
+
+			<!-- loop through S2 images -->
+			{% for nir in imgS2 %}
+
+				<!-- add S2 image if acq time < 10 days from S1 acq time -->
+				{% if (nir.acqstarttime - group.grouper)|abs < 5|int2td('days') %}
+					<div class="col-md-3 seb_nopadding">
+						
+						<!-- add date (and time difference with respect to slave image) -->
+						<p style="margin-top:0; margin-bottom:0"> {{ nir.acqstarttime.strftime('%Y-%m-%d %H:%M') }} ({{ '%+.1f' % (nir.acqstarttime - group.grouper)|td2int('days')|round(1) }} days) </p>
+
+						<!-- display full resolution image -->					
+						<!-- <img src="{{url_for('static', filename=nir.abspath)}}" width="100%"> -->
+
+						<!-- display thumbnail image with link to full resolution image -->
+						<a href="{{url_for('static', filename=nir.abspath, _external=True)}}" target="_blank"> 
+							<img src="{{url_for('static', filename=nir.abspath|replace('.png','_thumb.png'))}}" width="100%">
+						</a>
+
+					</div>
+				{% endif %}
+			{% endfor %}
+
 		</div>
-	{% endfor %}  
+	{% endfor %}
+
+
 
 
 {% endblock %}
-
-
-
-
-
-
-
-	
-	<!-- loop through dictionary, where each key is an acquisition time, each value a list of images -->
-	{% for val in results|dictsort(true) %}
-			<i> {{val}} </i>
-			<br>
-
-			{% for i in val %}
-				<b> {{i[0].title}} </b>
-				<br>
-			{% endfor %}
-
-			<br>
-			<br>
-
-	{% endfor %}  
-
-
-	<ul>
-	{% for group in results|groupby('acqstarttime')|reverse %}
-	    <li>{{ group.grouper }}<ul>
-	    {% for results in group.list %}
-	        <li>{{ results.title }}</li>
-	    {% endfor %}</ul></li>
-	{% endfor %}
-	</ul>

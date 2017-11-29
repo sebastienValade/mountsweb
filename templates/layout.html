@@ -43,8 +43,18 @@
 						</tbody>
 					</table>
 				</li>
-				<li class="active noshow"><a href="#latest" onclick="removeActive(this, 'latest')">Latest images</a></li>
-				<li class="noshow"><a href="#lrp" onclick="removeActive(this, 'lrp')">Time series</a></li>
+				<!-- mirova style -->
+				<!-- <li class="active noshow"><a href="#latest" onclick="removeActive(this, 'latest')">Latest images</a></li> -->
+				<!-- <li class="noshow"><a href="#lrp" onclick="removeActive(this, 'lrp')">Time series</a></li> -->
+
+				<!-- ugly style -->
+				<li {% if "/volcano/" in request.path %} class="active" {% endif %}><a href="{{ url_for('volcano', id=tgt_stats.id, _external=True) }}"> Images </a></li>
+				<li {% if "/timeseries/" in request.path %} class="active" {% endif %}><a href="{{ url_for('timeseries', id=tgt_stats.id, _external=True) }}"> Time series </a></li>
+
+				<!-- TODO style:
+				Toggleable / Dynamic Pills is achievable with data-toggle attribute.
+				However, it seems that it works only when href does not link to a seperate page. => Try to understand how to use the # tag (=> mirova style)... -->
+
 			</ul>
 		</div>
 	
