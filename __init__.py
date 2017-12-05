@@ -8,6 +8,7 @@ import json
 import plotly
 import plotly.graph_objs as go
 from sqlalchemy import create_engine  # database connection
+import numpy as np
 
 app = Flask(__name__)
 bootstrap = Bootstrap(app)
@@ -41,19 +42,16 @@ def home():
 @app.route('/targets')
 def get_targets():
 
-    stmt = "SELECT * FROM DB_MOUNTS.targets"
+    stmt = "SELECT fullname, id FROM DB_MOUNTS.targets ORDER BY fullname"
     rows = dbo.query(stmt)
 
     return render_template("targets.html", targets=rows)
 
 
-@app.route('/stats/<id>')
-def stats(id):
-    stmt = "SELECT * FROM DB_MOUNTS.results_img WHERE target_id = '" + id + "'"
+@app.route('/earthquakes')
+def earthquakes():
 
-    rows = dbo.query(stmt)
-
-    return render_template("stats.html", results=rows)
+    return render_template("earthquakes.html")
 
 
 @app.route("/about")
@@ -63,6 +61,58 @@ def about():
 
 @app.route("/volcano/<id>")
 def volcano(id):
+    # => logic made here with pandas libraries to grouby (rather with jinja2 templates)
+
+    # --- get target information (display in table)
+    stmt = "SELECT * FROM DB_MOUNTS.targets WHERE id = '" + id + "'"
+    tgt_stats = dbo.query(stmt)
+
+    # --- get target s1 results (ifg+coh+int)
+    q = '''
+        SELECT R.title, R.abspath, R.type, S.acqstarttime AS acqstarttime_slave, M.acqstarttime AS acqstarttime_master
+        FROM results_img AS R
+        INNER JOIN archive AS S ON R.id_slave = S.id
+        INNER JOIN archive AS M ON R.id_master = M.id
+        WHERE R.target_id = {} AND S.acqstarttime > '2017-01-01' AND (R.type = 'ifg' OR R.type = 'coh' OR R.type = 'int_VV')
+        ORDER BY S.acqstarttime desc, R.type desc
+    '''
+    stmt = q.format(id)
+    df_S1 = pd.read_sql(stmt, disk_engine)
+
+    # --- get target s2 results (nir)
+    q = '''
+        SELECT R.title, R.abspath, R.type, S.acqstarttime AS acqstarttime_slave, M.acqstarttime AS acqstarttime_master
+        FROM results_img AS R
+        INNER JOIN archive AS S ON R.id_slave = S.id
+        INNER JOIN archive AS M ON R.id_master = M.id
+        WHERE R.target_id = {} AND R.type = 'nir'
+        ORDER BY M.acqstarttime desc
+    '''
+    stmt = q.format(id)
+    df_S2 = pd.read_sql(stmt, disk_engine)
+
+    # --- group S1 dataframe by slave image acquisition date
+    gb = df_S1.groupby('acqstarttime_slave', sort=False)
+
+    img_groups = []
+    for group_name, group in gb:
+
+        # - search for closest S2 image to group date, and append
+        idx = np.argmin(abs(group_name - df_S2.acqstarttime_master))
+        group = group.append(df_S2.iloc[idx], ignore_index=True)
+
+        # - store group as dictionary
+        group_dict = group.to_dict('list')
+        group_dict['groupdate'] = group_name    # => field stores group date (timestamp)
+        group_dict['dt'] = df_S2.iloc[idx]['acqstarttime_master'] - group_name  # => field stores delta t between group date and selected S2 img
+        img_groups.append(group_dict)
+
+    return render_template("volcano.html", img_groups=img_groups, tgt_stats=tgt_stats[0])
+
+
+@app.route("/volcano_old/<id>")
+def volcano_old(id):
+    # => uses jinja2 template to grouby
 
     # --- get target information (display in table)
     stmt = "SELECT * FROM DB_MOUNTS.targets WHERE id = '" + id + "'"
@@ -74,8 +124,8 @@ def volcano(id):
         FROM results_img AS R
         INNER JOIN archive AS A
         ON R.id_slave = A.id
-        WHERE R.target_id = {} AND R.type = 'ifg' OR R.type = 'coh'
-        ORDER BY A.acqstarttime desc
+        WHERE R.target_id = {} AND A.acqstarttime > '2017-01-01' AND (R.type = 'ifg' OR R.type = 'coh' OR R.type = 'int_VV')
+        ORDER BY A.acqstarttime, R.type desc
         '''
     stmt = q.format(id)
     imgS1 = dbo.query(stmt)
@@ -92,7 +142,46 @@ def volcano(id):
     stmt = q.format(id)
     imgS2 = dbo.query(stmt)
 
-    return render_template("volcano.html", imgS1=imgS1, imgS2=imgS2, tgt_stats=tgt_stats[0])
+    return render_template("volcano_old.html", imgS1=imgS1, imgS2=imgS2, tgt_stats=tgt_stats[0])
+
+
+@app.route("/volcano_tmp/<id>")
+def volcano_tmp(id):
+
+    # --- get target information (display in table)
+    stmt = "SELECT * FROM DB_MOUNTS.targets WHERE id = '" + id + "'"
+    tgt_stats = dbo.query(stmt)
+
+    q = '''
+        SELECT R.title, R.abspath, R.type, S.acqstarttime AS acqstarttime_slave, M.acqstarttime AS acqstarttime_master
+        FROM results_img AS R
+        INNER JOIN archive AS S ON R.id_slave = S.id
+        INNER JOIN archive AS M ON R.id_master = M.id
+        WHERE R.target_id = {} AND S.acqstarttime > '2017-01-01' AND (R.type = 'ifg' OR R.type = 'coh' OR R.type = 'int_VV')
+        ORDER BY S.acqstarttime desc, R.type desc
+    '''
+    stmt = q.format(id)
+    df_S1 = pd.read_sql(stmt, disk_engine)
+
+    # --- get target s2 results (nir)
+    q = '''
+        SELECT R.title, R.abspath, R.type, M.acqstarttime AS acqstarttime_master
+        FROM results_img AS R
+        INNER JOIN archive AS M
+        ON R.id_master = M.id
+        WHERE R.target_id = {} AND R.type = 'nir'
+        ORDER BY M.acqstarttime desc
+        '''
+    stmt = q.format(id)
+    df_S2 = pd.read_sql(stmt, disk_engine)
+
+    gb = df_S1.groupby('acqstarttime_slave', sort=False)
+
+    import numpy as np
+    idx = [np.argmin(abs(i - df_S2.acqstarttime_master)) for i in sorted(gb.groups.iterkeys(), reverse=True)]
+    imgS2 = df_S2.iloc[idx]
+
+    return render_template("volcano_tmp.html", imgS1=gb, imgS2=imgS2, tgt_stats=tgt_stats[0])
 
 
 @app.route("/timeseries/<id>")
@@ -126,13 +215,18 @@ def timeseries(id):
         x=df_nir["time"],
         y=df_nir["data"],
         name="nir",
-        mode='lines+markers'
+        mode='lines+markers',
+        yaxis='y2'
     )
 
+    ti = datetime.datetime.strptime("2017-01-01", "%Y-%m-%d")
+    tf = min(df["time"].iloc[-1], df_nir["time"].iloc[-1])
     graph = dict(
         data=[trace1, trace2],
         layout=dict(
+            xaxis=dict(range=[ti, tf]),
             yaxis=dict(title="index of change"),
+            yaxis2=dict(title="infrared", overlaying='y', anchor='y', side='right', zeroline=False),
             showlegend=True
         )
     )
@@ -152,7 +246,6 @@ def plot_tmp():
     t_str = dat.get_col(0)
     print t_str
     # t_datetime = pd.to_datetime(t_str)
-    import datetime
     t_datetime = [datetime.datetime.strptime(t, "%Y-%m-%dT%H:%M:%S") for t in t_str]
     y = dat.get_col(1)
 

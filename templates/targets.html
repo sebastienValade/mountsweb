@@ -2,20 +2,18 @@
 
 {% block page_content %}
 
-	<b><i>Targets</i></b>
-	<br>
-    <br>
-    {% for target in targets %}
+<div class="row">
+
+	<!-- offset by 4 columns in case of medium screens to center on page -->
+	<div class="col-sx-2 col-md-2 col-md-offset-4">
+	{% for target in targets %}
     	
     	<!-- create links with dynamic parameter: http://localhost:5000/?id=221080 -->
   		<!-- <a href="{{ url_for('index', id=target.id) }}"> {{target.fullname}} </a> -->
 
   		<!-- create links with dynamic route: http://localhost:5000/volcano/221080 -->
-  		<a href="{{ url_for('volcano', id=target.id, _external=True) }}"> {{target.fullname}} </a>
-    	<br>
-
-    {% else %}
-        <em>No targets found...</em>
+  		<a class="btn btn-default btn-lg btn-block" role="button" href="{{ url_for('volcano', id=target.id, _external=True) }}"> {{target.fullname}} </a>
   	{% endfor %}
-
+	</div>
+</div>
 {% endblock %}

@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+
+<!-- add js/css for proptrox library -->
+{% block head %}
+	{{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/poptroxstyle.css') }}">
+    <script src="{{ url_for('static', filename='js/jquery-1.11.2.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.poptrox.min.js') }}"></script>		
+{% endblock %}
+
+
+{% block latest_images %}
+
+	<!-- loop through S1 image list, grouped by acquisition time -->
+	{% for name, group in imgS1 %}
+		<div class="row poptroxImages">
+
+			<!-- loop through S1 images in a group -->
+			{% for p in group.abspath.tolist() %}
+				
+				<!-- define cell (width=3col) -->
+				<div class="col-md-3 seb_nopadding">
+					<!-- <p> {{group.type.tolist()[loop.index-1]}} </p> -->
+
+					<!-- add acquisition time if first iteration -->
+					{% if loop.first %}
+						<p style="margin-top:0; margin-bottom:0"> {{ name.strftime('%Y-%m-%d %H:%M') }} </p>
+					{% else %}
+						<br>
+					{% endif %}
+
+					<!-- define image title -->
+					{% set type = group.type.tolist()[loop.index-1] %}
+
+					{% if type == 'ifg' %}
+						{% set imgtitle = "interferogram (" + group.acqstarttime_master.tolist()[loop.index-1].strftime('%Y-%m-%d') + " - " + group.acqstarttime_slave.tolist()[loop.index-1].strftime('%Y-%m-%d') + ")" %}
+					{% elif type == 'coh' %}
+						{% set imgtitle = "coherence (" + group.acqstarttime_master.tolist()[loop.index-1].strftime('%Y-%m-%d') + " - " + group.acqstarttime_slave.tolist()[loop.index-1].strftime('%Y-%m-%d') + ")" %}
+					{% elif type == 'int_VV' %}
+						{% set imgtitle = "intensity VV (" + group.acqstarttime_master.tolist()[loop.index-1].strftime('%Y-%m-%d') + ")" %}
+					{% elif type == 'int_VH' %}
+						{% set imgtitle = "intensity VH (" + group.acqstarttime_master.tolist()[loop.index-1].strftime('%Y-%m-%d') + ")" %}
+					{% else %}
+						{% set imgtitle = "unknown" %}						
+					{% endif %}
+
+					<!-- display thumbnail image with link to full resolution image -->
+					<a href="{{url_for('static', filename=p, _external=True)}}" target="_blank"> 
+						<img src="{{url_for('static', filename=p|replace('.png','_thumb.png'))}}" width="100%"
+							title="{{ imgtitle }}"/>
+					</a>
+
+				</div>
+			{% endfor %}
+
+			<!-- add S2 image if acq time < 10 days from S1 acq time -->
+			<div class="col-md-3 seb_nopadding">
+				
+				<!-- add date (and time difference with respect to slave image) -->
+				<p style="margin-top:0; margin-bottom:0"> {{ imgS2.acqstarttime_master.iloc[loop.index -1].strftime('%Y-%m-%d %H:%M') }} ({{ '%+.1f' % (imgS2.acqstarttime_master.iloc[loop.index -1] - name)|td2int('days')|round(1) }} days) </p>
+
+				<!-- define image title -->
+				{% set type = imgS2.type.iloc[loop.index -1] %}
+				{% if type == 'nir' %}
+					{% set imgtitle = "near infrared (B12-B11-B8A)" %}
+				{% else %}
+					{% set imgtitle = "unknown" %}
+				{% endif %}
+
+
+				<!-- display thumbnail image with link to full resolution image -->
+				<a href="{{url_for('static', filename=imgS2.abspath.iloc[loop.index - 1], _external=True)}}" target="_blank"> 
+					<img src="{{url_for('static', filename=imgS2.abspath.iloc[loop.index -1 ]|replace('.png','_thumb.png'))}}" width="100%"
+						title="{{ imgtitle }}"/>
+				</a>
+
+			</div>
+
+
+		</div>
+	{% endfor %}
+
+
+	<script>
+		var poptroxImages = $(".poptroxImages")
+		poptroxImages.poptrox({
+							usePopupNav:true, 
+							popupWidth: 500, 
+							popupHeight: 100,
+							usePopupCaption: true,
+							usePopupCloser: true,
+							usePopupDefaultStyling: false
+							});
+	</script> 
+
+{% endblock %}
+
+
+
