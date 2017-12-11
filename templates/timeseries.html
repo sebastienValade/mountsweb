@@ -8,13 +8,28 @@
 
 
 {% block latest_images %}
-    <div id="graph-0"></div>
+    
+    <div id="graphDiv"></div>
 
-    <script type="text/javascript">
-        var graph = {{graphJSON | safe}};
-        Plotly.plot("graph-0", graph.data, graph.layout);
-    </script>
+	<img id="imageDiv" src="" class="img-responsive center-block">
+
+	<script type="text/javascript">
+		
+		// --- plot graph
+		var graph = {{graphJSON | safe}};
+        Plotly.plot("graphDiv", graph.data, graph.layout);
+
+        // --- display image on hover (or click with 'plotly_click')
+		var myPlot = document.getElementById('graphDiv')
+		myPlot.on('plotly_hover', function(data){
+			var point = data.points[0];
+			var imgpath = point.data.text[point.pointNumber];
+			// alert('point number = ' + point.pointNumber);			
+			
+			// append variable imgpath (TODO: find more elegant way)
+			document.getElementById('imageDiv').src = "{{url_for('static', filename='')}}".replace('static/','static/'+imgpath).replace('.png','_thumb.png');
+		});
+
+	</script>
+
 {% endblock %}
-
-
-

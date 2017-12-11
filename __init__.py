@@ -194,29 +194,43 @@ def timeseries(id):
 
     # --- get data in database (pandas/sqlalchemy)
     # TODO: make a unique query and filter result
-    stmt = "SELECT time, data FROM DB_MOUNTS.results_dat WHERE type='coh' ORDER BY time ASC"
+    # stmt = "SELECT time, data FROM DB_MOUNTS.results_dat WHERE type='coh' ORDER BY time ASC"
+    stmt = '''
+        SELECT D.time, D.data, D.id_image, I.abspath AS abspath
+        FROM results_dat AS D
+        INNER JOIN results_img AS I ON I.id = D.id_image
+        WHERE D.type = 'coh'
+        ORDER BY D.time ASC
+        '''
     df = pd.read_sql(stmt, disk_engine)
 
-    stmt = "SELECT time, data FROM DB_MOUNTS.results_dat WHERE type='nir' ORDER BY time ASC"
+    # stmt = "SELECT time, data FROM DB_MOUNTS.results_dat WHERE type='nir' ORDER BY time ASC"
+    stmt = '''
+        SELECT D.time, D.data, D.id_image, I.abspath AS abspath
+        FROM results_dat AS D
+        INNER JOIN results_img AS I ON I.id = D.id_image
+        WHERE D.type = 'nir'
+        ORDER BY D.time ASC
+        '''
     df_nir = pd.read_sql(stmt, disk_engine)
-
-    # --- plot (pandas)
-    # df.plot(x='time', y='data')
-    # plt.show()
 
     # -- create the plotly data structure
     trace1 = go.Scatter(
         x=df["time"],
         y=df["data"],
         name="coh",
-        mode='lines+markers'
+        mode='lines+markers',
+        text=df["abspath"],
+        hoverinfo='x+y'
     )
     trace2 = go.Scatter(
         x=df_nir["time"],
         y=df_nir["data"],
         name="nir",
         mode='lines+markers',
-        yaxis='y2'
+        yaxis='y2',
+        text=df_nir["abspath"],
+        hoverinfo='x+y'
     )
 
     ti = datetime.datetime.strptime("2017-01-01", "%Y-%m-%d")
@@ -225,9 +239,10 @@ def timeseries(id):
         data=[trace1, trace2],
         layout=dict(
             xaxis=dict(range=[ti, tf]),
-            yaxis=dict(title="index of change"),
-            yaxis2=dict(title="infrared", overlaying='y', anchor='y', side='right', zeroline=False),
-            showlegend=True
+            yaxis=dict(title="coherence (nb px < 0.5)"),
+            yaxis2=dict(title="infrared (nb px red (B12) > 0.7)", overlaying='y', anchor='y', side='right', zeroline=False),
+            showlegend=True,
+            hovermode='closest'     # "x" | "y" | "closest" | false
         )
     )
 
