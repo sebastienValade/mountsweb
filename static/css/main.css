@@ -23,7 +23,20 @@
     padding-right: 0;    
 }
 
+
+.seb_table{
+    font-size: 12;
+    font-weight: normal;
+}
+
+.img_time{
+    white-space: nowrap; /* => equivalent to Bootstrap class .text-nowrap */
+    margin-top: 0; 
+    margin-bottom: 0;
+}
+
 /* NB: padding necessary when using bottstrap navbar-fixed-top */
 body {
     padding-top: 60px;
 }
+

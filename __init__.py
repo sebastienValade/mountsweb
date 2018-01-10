@@ -9,24 +9,68 @@ import plotly
 import plotly.graph_objs as go
 from sqlalchemy import create_engine  # database connection
 import numpy as np
+from flask_googlemaps import GoogleMaps
+from flask_googlemaps import Map
+from config import Config
 
 app = Flask(__name__)
+
+# --- load configuration
+app.config.from_object(Config)
+
+# --- initialize
 bootstrap = Bootstrap(app)
-
-
-# --- connect to database
-db_host = '127.0.0.1'
-db_usr = 'root'
-db_pwd = 'br12Fol!'
-db_type = 'mysql'
-db_name = 'DB_MOUNTS'
-db_url = db_type + '://' + db_usr + ':' + db_pwd + '@' + db_host + '/' + db_name
+db_url = app.config['DB_URL']
 dbo = records.Database(db_url)
-
-
 disk_engine = create_engine(db_url)
+GoogleMaps(app)
+
 
 # === define routes
+
+@app.route("/home_new")
+def home_new():
+    mymap = Map(
+        identifier="view-side",
+        lat=0,
+        lng=0,
+        zoom=1,
+        maptype='SATELLITE',
+        style="height:300px;width:600px;margin:0;",
+        markers=[(0, 0)]
+    )
+    return render_template("home_new.html", mymap=mymap)
+
+
+@app.route("/map")
+def mapview():
+    # creating a map in the view
+    mymap = Map(
+        identifier="view-side",
+        lat=37.4419,
+        lng=-122.1419,
+        markers=[(37.4419, -122.1419)]
+    )
+    sndmap = Map(
+        identifier="sndmap",
+        lat=37.4419,
+        lng=-122.1419,
+        markers=[
+            {
+                'icon': 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                'lat': 37.4419,
+                'lng': -122.1419,
+                'infobox': "<b>Hello World</b>"
+            },
+            {
+                'icon': 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                'lat': 37.4300,
+                'lng': -122.1400,
+                'infobox': "<b>Hello World from other place</b>"
+            }
+        ]
+    )
+    return render_template('map.html', mymap=mymap, sndmap=sndmap)
 
 
 @app.route('/')
@@ -233,7 +277,7 @@ def timeseries(id):
         hoverinfo='x+y'
     )
 
-    ti = datetime.datetime.strptime("2017-01-01", "%Y-%m-%d")
+    ti = datetime.datetime.strptime("2016-12-30", "%Y-%m-%d")
     tf = min(df["time"].iloc[-1], df_nir["time"].iloc[-1])
     graph = dict(
         data=[trace1, trace2],

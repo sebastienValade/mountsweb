@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block head %}
+    {{ super() }}
+        {{mymap.js}}
+{% endblock %}
+
+{% block page_content %}
+
+	<div class="text-center">
+		{{mymap.html}}
+
+		<img src="{{url_for('static', filename='images/mounts.png')}}" style="width:50%">
+		<p style="font-size:40px">Monitoring Unrest From Space</p>
+	</div>  
+
+{% endblock %}

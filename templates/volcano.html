@@ -23,8 +23,8 @@
 		<div class="row poptroxImages">
 
 			<!-- intensity -->
-			<div class="col-md-3 seb_nopadding">
-				{{ D['groupdate'].strftime('%Y-%m-%d %H:%M') }}
+			<div class="col-xs-3 col-sm-3 col-md-3 seb_nopadding">
+				<p class="img_time">{{ D['groupdate'].strftime('%Y-%m-%d %H:%M') }}</p>
 
 				{% if 'int_VV' in D['type'] %}
 					{% set idx = D['type'].index('int_VV') %}
@@ -34,7 +34,7 @@
 			</div>
 
 			<!-- interferogram -->
-			<div class="col-md-3 seb_nopadding">
+			<div class="col-xs-3 col-sm-3 col-md-3 seb_nopadding">
 				&nbsp;
 
 				{% if 'ifg' in D['type'] %}
@@ -45,7 +45,7 @@
 			</div>
 
 			<!-- coherence -->
-			<div class="col-md-3 seb_nopadding">
+			<div class="col-xs-3 col-sm-3 col-md-3 seb_nopadding">
 				&nbsp;
 
 				{% if 'coh' in D['type'] %}
@@ -59,8 +59,8 @@
 			{% if 'nir' in D['type'] %}
 				{% set idx = D['type'].index('nir') %}
 				
-				<div class="col-md-3 seb_nopadding">
-					{{ D['acqstarttime_master'][idx].strftime('%Y-%m-%d %H:%M') }} ({{ '%+.1f' % D['dt']|td2int('days')|round(1) }} days)
+				<div class="col-xs-3 col-sm-3 col-md-3 seb_nopadding">
+					<p class="img_time">{{ D['acqstarttime_master'][idx].strftime('%Y-%m-%d %H:%M') }} ({{ '%+.1f' % D['dt']|td2int('days')|round(1) }} days)</p>
 
 					{% set imgtitle = "near infrared, B12-B11-B8A (" + D['acqstarttime_master'][idx].strftime('%Y-%m-%d') + ")" %}
 					{{ imglink(imgpath=D['abspath'][idx], imgtitle=imgtitle) }}

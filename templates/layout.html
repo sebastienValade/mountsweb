@@ -12,9 +12,9 @@
 		<!-- 	width (vNav) = 10% of container full width -->
 		<!-- 	tgt_stats = variable passed in render_template("tgt.html", ...) -->
 
-		<!-- TODO: hidden-xs means that on cells the left column is hidden, must change this so that it is possible to change to timeseries -->
-		<div class="col-xs-12 col-sm-3 col-md-3 hidden-xs">
-			<ul id="vNav" class="nav nav-pills nav-stacked" style="width:10%;position:fixed;">
+		<!-- NB: add hidden-xs to hide on extra small screens -->
+		<div class="col-xs-12 col-sm-5 col-md-3">
+			<ul id="vNav" class="nav nav-pills nav-stacked" style="width:100%;">
 				<li>
 					<table class="table-condensed" style="width: 100%">
 						<tbody>
@@ -22,16 +22,16 @@
 						   		<th class="grigioTd">{{ tgt_stats.fullname }}</th>
 							</tr>
 							<tr>
-						   		<th class="grigioTd">{{ tgt_stats.country }}</th>
+						   		<th class="grigioTd" style="font-weight:normal">{{ tgt_stats.country }}</th>
 							</tr>
 							<tr>
 								<th style="width: 100%" class="grigioTd">
-							    	<table class="table-condensed">
+							    	<table class="table-condensed seb_table">
 										<tbody>
 											<tr>
-												<th>Latitude</th>
-												<th>Longitude</th>
-												<th>Elevation</th>
+												<th class="seb_table">Latitude</th>
+												<th class="seb_table">Longitude</th>
+												<th class="seb_table">Elevation</th>
 											</tr>
 											<tr>
 												<td>{{ tgt_stats.lat }}</td>
@@ -63,7 +63,7 @@
 
 		<!-- RIGHT column -->
 		<!-- width (columns) = 9/12 columns (12 needed in bootstrap grid row) -->
-		<div class="col-xs-12 col-sm-9 col-md-9">
+		<div class="col-xs-12 col-sm-7 col-md-9">
 			{% block latest_images %}
 			{% endblock %}
 		</div>
